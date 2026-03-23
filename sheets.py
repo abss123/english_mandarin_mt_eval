@@ -68,10 +68,10 @@ def save_vote(voted_key, vote_data):
         json.dumps(vote_data["choice_labels"], ensure_ascii=False),
         vote_data["timestamp"],
     ]
-    try:
-        cell = sheet.find(voted_key, in_column=1)
+    cell = sheet.find(voted_key, in_column=1)
+    if cell:
         sheet.update(f"A{cell.row}:G{cell.row}", [row_values])
-    except gspread.exceptions.CellNotFound:
+    else:
         sheet.append_row(row_values)
     load_votes.clear()
 
