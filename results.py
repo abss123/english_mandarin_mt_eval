@@ -5,11 +5,7 @@ Shows full voting results broken down by system, voter, and line.
 
 import streamlit as st
 import pandas as pd
-import json
-import os
-
-DATA_FILE = "translations.csv"
-VOTES_FILE = "votes.json"
+from sheets import load_votes
 
 SOURCE_COLS = {
     # "zh_opus": "OPUS",
@@ -21,24 +17,20 @@ SOURCE_COLS = {
 st.set_page_config(page_title="Results", page_icon="📊", layout="wide")
 st.title("📊 Translation Voting — Results")
 
-if not os.path.exists(VOTES_FILE):
-    st.warning("No votes file found yet.")
-    st.stop()
+if st.button("Refresh"):
+    load_votes.clear()
+    st.rerun()
 
-with open(VOTES_FILE, "r") as f:
-    votes = json.load(f)
+votes = load_votes()
 
 if not votes:
     st.warning("No votes recorded yet.")
     st.stop()
 
-df_csv = pd.read_csv(DATA_FILE)
-
-# Build a flat dataframe of all votes (one row per voter+line+system chosen)
+# Build a flat dataframe — one row per voter+line+system chosen
 records = []
 for key, v in votes.items():
     voter, row_idx = key.split("|", 1)
-    # Support both old single-choice and new multi-choice format
     choices = v.get("choices") or ([v["choice"]] if v.get("choice") else [])
     labels = v.get("choice_labels") or [SOURCE_COLS.get(c, c) for c in choices]
     for col, label in zip(choices, labels):

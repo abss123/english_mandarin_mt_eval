@@ -9,17 +9,15 @@ Deploy: Push to GitHub → connect at share.streamlit.io
 
 import streamlit as st
 import pandas as pd
-import json
-import os
 import random
 from datetime import datetime
+from sheets import load_votes, save_vote
 
 # =============================================================================
 # CONFIG  ← edit here to control which translations voters see
 # =============================================================================
 
 DATA_FILE = "translations.csv"
-VOTES_FILE = "votes.json"
 
 # Add or remove entries to control which translation systems appear for voting.
 # Voters never see these names — they only see "Option A / B / C / ...".
@@ -43,18 +41,6 @@ def load_translations():
         st.error(f"Missing columns in CSV: {missing}")
         st.stop()
     return df
-
-
-def load_votes():
-    if os.path.exists(VOTES_FILE):
-        with open(VOTES_FILE, 'r') as f:
-            return json.load(f)
-    return {}
-
-
-def save_votes(votes):
-    with open(VOTES_FILE, 'w') as f:
-        json.dump(votes, f, indent=2, ensure_ascii=False)
 
 
 def get_shuffled_sources(row_idx, session_seed):
@@ -226,7 +212,7 @@ def main():
     with col_submit:
         if st.button("Submit & Next →", type="primary", use_container_width=True):
             if selected_options:
-                votes[voted_key] = {
+                vote_data = {
                     "choices": selected_options,
                     "choice_labels": [SOURCE_COLS[c] for c in selected_options],
                     "voter_email": voter_name,
@@ -234,7 +220,7 @@ def main():
                     "en_text": en_text,
                     "timestamp": str(datetime.now()),
                 }
-                save_votes(votes)
+                save_vote(voted_key, vote_data)
                 voted_rows.add(str(row_idx))
                 st.success("Vote recorded!")
             # Advance to next unvoted
