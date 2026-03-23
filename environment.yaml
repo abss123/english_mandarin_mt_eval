@@ -1,0 +1,10 @@
+name: mt-eval
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - python=3.11
+  - pip
+  - pip:
+    - streamlit>=1.30.0
+    - pandas>=1.5.0
